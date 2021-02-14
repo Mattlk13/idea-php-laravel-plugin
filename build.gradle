@@ -1,38 +1,26 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
-buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            url "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
-        maven {
-            url 'https://dl.bintray.com/jetbrains/intellij-plugin-service'
-        }
-
-    }
-    dependencies {
-        classpath "org.jetbrains.intellij.plugins:gradle-intellij-plugin:0.5.0-SNAPSHOT"
-    }
+plugins {
+    id "org.jetbrains.intellij" version "0.6.5"
 }
 
-plugins {
-    id "org.jetbrains.intellij" version "0.4.9"
-    id 'com.palantir.git-version' version "0.11.0"
+repositories {
+    jcenter()
+    mavenCentral()
 }
 
 def htmlFixer = { htmlFile -> file(htmlFile).text.replace('<html>', '').replace('</html>', '') }
 
 apply plugin: 'idea'
-apply plugin: 'org.jetbrains.intellij'
 apply plugin: 'java'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 intellij {
-    version ideaVersion
-    updateSinceUntilBuild false
+    version platformVersion
+    type platformType
+    updateSinceUntilBuild true
     plugins = [
             "com.jetbrains.php:${phpPluginVersion}",
             "com.jetbrains.php.blade:${bladePluginVersion}",
@@ -40,11 +28,13 @@ intellij {
             'java-i18n',
             'properties'
     ]
-    pluginName 'Laravel Plugin'
+    pluginName pluginName_
 }
 
 patchPluginXml {
-    sinceBuild '173'
+    version pluginVersion
+    sinceBuild sinceBuild
+    untilBuild untilBuild
     changeNotes = htmlFixer('src/main/resources/META-INF/change-notes.html')
 }
 
@@ -54,16 +44,10 @@ publishPlugin {
 }
 
 group 'de.espend.idea.laravel'
-
-def details = versionDetails()
-if (details.isCleanTag) {
-    version = "${details.lastTag}"
-} else {
-    version = "${details.lastTag}.${details.gitHash}-SNAPSHOT"
-}
+version pluginVersion
 
 wrapper {
-    gradleVersion '5.5.1'
+    gradleVersion '6.8.2'
 }
 
 test.testLogging.exceptionFormat = TestExceptionFormat.FULL
